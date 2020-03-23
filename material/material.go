@@ -144,7 +144,6 @@ func (material *Material) AddVideo(filename, title, introduction string) (mediaI
 			Filename:  filename,
 		},
 		{
-			IsFile:    true,
 			Fieldname: "description",
 			Value:     fieldValue,
 		},

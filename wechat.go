@@ -1,4 +1,4 @@
-package wechat
+package qqchat
 
 import (
 	"net/http"

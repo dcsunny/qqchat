@@ -163,15 +163,22 @@ func PostMultipartForm(fields []MultipartFormField, uri string) (respBody []byte
 				return
 			}
 
-			fh, e := os.Open(field.Filename)
-			if e != nil {
-				err = fmt.Errorf("error opening file , err=%v", e)
-				return
-			}
-			defer fh.Close()
+			if len(field.Value) > 0 {
+				valueReader := bytes.NewReader(field.Value)
+				if _, err = io.Copy(fileWriter, valueReader); err != nil {
+					return
+				}
+			} else {
+				fh, e := os.Open(field.Filename)
+				if e != nil {
+					err = fmt.Errorf("error opening file , err=%v", e)
+					return
+				}
+				defer fh.Close()
 
-			if _, err = io.Copy(fileWriter, fh); err != nil {
-				return
+				if _, err = io.Copy(fileWriter, fh); err != nil {
+					return
+				}
 			}
 		} else {
 			partWriter, e := bodyWriter.CreateFormField(field.Fieldname)
