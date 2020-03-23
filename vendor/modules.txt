@@ -1,7 +1,8 @@
 # github.com/astaxie/beego v1.12.0
+## explicit
 github.com/astaxie/beego
-github.com/astaxie/beego/context
 github.com/astaxie/beego/config
+github.com/astaxie/beego/context
 github.com/astaxie/beego/context/param
 github.com/astaxie/beego/grace
 github.com/astaxie/beego/logs
@@ -9,10 +10,12 @@ github.com/astaxie/beego/session
 github.com/astaxie/beego/toolbox
 github.com/astaxie/beego/utils
 # github.com/bradfitz/gomemcache v0.0.0-20190329173943-551aad21a668
+## explicit
 github.com/bradfitz/gomemcache/memcache
 # github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3
 github.com/gin-contrib/sse
 # github.com/gin-gonic/gin v1.4.0
+## explicit
 github.com/gin-gonic/gin
 github.com/gin-gonic/gin/binding
 github.com/gin-gonic/gin/internal/json
@@ -20,8 +23,9 @@ github.com/gin-gonic/gin/render
 # github.com/golang/protobuf v1.3.1
 github.com/golang/protobuf/proto
 # github.com/gomodule/redigo v2.0.0+incompatible
-github.com/gomodule/redigo/redis
+## explicit
 github.com/gomodule/redigo/internal
+github.com/gomodule/redigo/redis
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
 # github.com/mattn/go-isatty v0.0.7
@@ -31,12 +35,13 @@ github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
 # github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644
+## explicit
 github.com/shiena/ansicolor
 # github.com/ugorji/go v1.1.4
 github.com/ugorji/go/codec
 # golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-golang.org/x/crypto/acme/autocert
 golang.org/x/crypto/acme
+golang.org/x/crypto/acme/autocert
 # golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223
 golang.org/x/sys/unix
 # gopkg.in/go-playground/validator.v8 v8.18.2

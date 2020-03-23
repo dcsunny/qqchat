@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dcsunny/qqchat/message"
-	"github.com/dcsunny/wechat"
+	"github.com/dcsunny/qqchat"
 )
 
 func hello(rw http.ResponseWriter, req *http.Request) {

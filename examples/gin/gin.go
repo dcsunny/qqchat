@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dcsunny/qqchat/message"
-	"github.com/dcsunny/wechat"
+	"github.com/dcsunny/qqchat"
 	"github.com/gin-gonic/gin"
 )
 

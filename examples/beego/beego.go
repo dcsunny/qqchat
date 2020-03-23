@@ -6,7 +6,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
 	"github.com/dcsunny/qqchat/message"
-	"github.com/dcsunny/wechat"
+	"github.com/dcsunny/qqchat"
 )
 
 func hello(ctx *context.Context) {
