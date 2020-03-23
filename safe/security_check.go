@@ -42,7 +42,6 @@ func (s *WxSafe) ImgSecCheck(filename string, fileBytes []byte) (err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println(string(response))
 	var result define.CommonError
 	err = json.Unmarshal(response, &result)
 	if err != nil {
@@ -70,7 +69,6 @@ func (s *WxSafe) MsgSecCheck(content string) (err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println(string(response))
 	var result define.CommonError
 	err = json.Unmarshal(response, &result)
 	if err != nil {
@@ -104,7 +102,6 @@ func (s *WxSafe) MediaCheckAsync(mediaUrl string, mediaType string) (err error) 
 	if err != nil {
 		return
 	}
-	fmt.Println(string(response))
 	if result.ErrCode != 0 {
 		err = fmt.Errorf("MediaCheckAsync error : errcode=%v , errmsg=%v", result.ErrCode, result.ErrMsg)
 		return
