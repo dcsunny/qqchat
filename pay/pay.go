@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-
 	"time"
 
 	"github.com/dcsunny/qqchat/context"
@@ -14,7 +13,7 @@ import (
 const (
 	payGateway  = "https://qpay.qq.com/cgi-bin/pay/qpay_unified_order.cgi"
 	mchTransUri = "https://api.qpay.qq.com/cgi-bin/epay/qpay_epay_b2c.cgi"
-	sendRedUri  = "https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack"
+	sendRedUri  = "https://api.qpay.qq.com/cgi-bin/hongbao/qpay_hb_mch_send.cgi"
 	refundUri   = "https://api.mch.weixin.qq.com/secapi/pay/refund"
 )
 
@@ -40,8 +39,8 @@ type Params struct {
 	Wishing  string
 	SendName string
 	ActName  string
-	Remark   string
-	SceneID  string
+	IconID   int
+	BannerID int
 }
 
 // PayConfig 是传出用于 jsdk 用的参数
@@ -328,61 +327,57 @@ func (pcf *Pay) MchPay(p *Params) error {
 			return nil
 		}
 		return errors.New(payRet.ErrCodeDes)
-	} else {
-		return errors.New("[msg : xmlUnmarshalError] [rawReturn : " + string(rawRet) + "]")
 	}
-	return nil
+	return errors.New("[msg : xmlUnmarshalError] [rawReturn : " + string(rawRet) + "]")
 }
 
 type RedParams struct {
-	NonceStr     string `xml:"nonce_str"`
-	Sign         string `xml:"sign"`
-	MchBillno    string `xml:"mch_billno"`
-	MchID        string `xml:"mch_id"`
-	WxAppID      string `xml:"wxappid"`
-	SendName     string `xml:"send_name"`
-	ReOpenID     string `xml:"re_openid"`
-	TotalAmount  int    `xml:"total_amount"`
-	TotalNum     int    `xml:"total_num"`
-	Wishing      string `xml:"wishing"`
-	ClientIP     string `xml:"client_ip"`
-	ActName      string `xml:"act_name"`
-	Remark       string `xml:"remark"`
-	SceneID      string `xml:"scene_id"`
-	RiskInfo     string `xml:"risk_info"`
-	ConsumeMchID string `xml:"consume_mch_id"`
+	Charset     int    `xml:"charset"`      //必填 1 utf8 , 2 gbk
+	NonceStr    string `xml:"nonce_str"`    //必填
+	Sign        string `xml:"sign"`         //必填
+	MchBillno   string `xml:"mch_billno"`   //必填 订单号
+	MchID       string `xml:"mch_id"`       //必填
+	MchName     string `xml:"mch_name"`     //必填//商户名称，会展示在红包领取页面上
+	QqAppID     string `xml:"qqappid"`      //必填
+	ReOpenID    string `xml:"re_openid"`    //必填
+	TotalAmount int    `xml:"total_amount"` //必填
+	TotalNum    int    `xml:"total_num"`    //必填
+	Wishing     string `xml:"wishing"`      //必填
+	ActName     string `xml:"act_name"`     //必填
+	IconID      int    `xml:"icon_id"`      //必填
+	BannerID    int    `xml:"banner_id,omitempty"`
+	NotifyUrl   string `xml:"notify_url,omitempty"`
+	NotSendMsg  int    `xml:"not_send_msg,omitempty"`
+	MinValue    int    `xml:"min_value"` //必填 1
+	MaxValue    int    `xml:"max_value"` //必填 100
 }
 
 type RedResult struct {
-	ReturnCode  string `xml:"return_code"`
-	ReturnMsg   string `xml:"return_msg"`
-	ResultCode  string `xml:"result_code"`
-	ErrCode     string `xml:"err_code"`
-	ErrCodeDes  string `xml:"err_code_des"`
-	MchBillno   string `xml:"mch_billno"`
-	MchID       string `xml:"mch_id"`
-	WxAppID     string `xml:"wxappid"`
-	ReOpenID    string `xml:"re_openid"`
-	TotalAmount int    `xml:"total_amount"`
-	SendListid  string `xml:"send_listid"`
+	ReturnCode string `xml:"return_code"`
+	ReturnMsg  string `xml:"return_msg"`
+	Retcode    string `xml:"retcode"`
+	Retmsg     string `xml:"retmsg"`
 }
 
 func (pcf *Pay) SendRed(p *Params) error {
 	nonceStr := util.RandomStr(32)
 	params := &RedParams{
+		Charset:     1,
 		NonceStr:    nonceStr,
 		MchBillno:   p.OutTradeNo,
 		MchID:       pcf.PayMchID,
-		WxAppID:     pcf.AppID,
-		SendName:    p.SendName,
+		QqAppID:     pcf.AppID,
+		MchName:     p.SendName,
 		ReOpenID:    p.OpenID,
 		TotalAmount: p.TotalFee,
 		TotalNum:    1,
 		Wishing:     p.Wishing,
-		ClientIP:    p.CreateIP,
 		ActName:     p.ActName,
-		Remark:      p.Remark,
-		SceneID:     p.SceneID,
+		IconID:      p.IconID,
+		BannerID:    p.BannerID,
+		MinValue:    1,
+		NotSendMsg:  1,
+		MaxValue:    p.TotalFee + 1,
 	}
 	sign, err := pcf.Sign(params, pcf.PayKey)
 	if err != nil {
@@ -406,14 +401,12 @@ func (pcf *Pay) SendRed(p *Params) error {
 		return err
 	}
 	if payRet.ReturnCode == "SUCCESS" {
-		if payRet.ResultCode == "SUCCESS" {
+		if payRet.Retcode == "SUCCESS" {
 			return nil
 		}
-		return errors.New(payRet.ErrCodeDes)
-	} else {
-		return errors.New("[msg : xmlUnmarshalError] [rawReturn : " + string(rawRet) + "]")
+		return errors.New(payRet.Retmsg)
 	}
-	return nil
+	return errors.New("[msg : xmlUnmarshalError] [rawReturn : " + string(rawRet) + "]")
 }
 
 type WxRefundParams struct {
