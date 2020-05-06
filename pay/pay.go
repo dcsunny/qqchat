@@ -425,7 +425,7 @@ func (pcf *Pay) SendRed(p *Params) (string, error) {
 	if payRet.Retcode == "0" {
 		return payRet.Listid, nil
 	}
-	return "", errors.New("[msg : jsonUnmarshalError] [rawReturn : " + string(rawRet) + "]")
+	return "", errors.New(payRet.Retmsg)
 }
 
 type WxRefundParams struct {
