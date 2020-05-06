@@ -33,6 +33,23 @@ func HTTPGet(uri string) ([]byte, error) {
 	return ioutil.ReadAll(response.Body)
 }
 
+func HTTPGetV2(uri string, client *http.Client) ([]byte, error) {
+	response, err := client.Get(uri)
+	defer func() {
+		if response != nil {
+			response.Body.Close()
+		}
+	}()
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("http get error : uri=%v , statusCode=%v", uri, response.StatusCode)
+	}
+	return ioutil.ReadAll(response.Body)
+}
+
 //PostJSON post json 数据请求
 func PostJSON(uri string, obj interface{}) ([]byte, error) {
 	jsonData, err := json.Marshal(obj)

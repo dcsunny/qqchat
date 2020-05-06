@@ -1,9 +1,11 @@
 package pay
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/dcsunny/qqchat/context"
@@ -271,6 +273,15 @@ func (pcf *Pay) Sign(variable interface{}, key string) (sign string, err error) 
 	return
 }
 
+func (pcf *Pay) SignByJson(variable interface{}, key string) (sign string, err error) {
+	ss := &SignStruct{
+		ToLower: false,
+		Tag:     "json",
+	}
+	sign, err = ss.Sign(variable, nil, key)
+	return
+}
+
 type MchTransfersParams struct {
 	InputCharset   string `xml:"input_charset"`
 	MchID          string `xml:"mch_id"`
@@ -332,34 +343,33 @@ func (pcf *Pay) MchPay(p *Params) error {
 }
 
 type RedParams struct {
-	Charset     int    `xml:"charset"`      //必填 1 utf8 , 2 gbk
-	NonceStr    string `xml:"nonce_str"`    //必填
-	Sign        string `xml:"sign"`         //必填
-	MchBillno   string `xml:"mch_billno"`   //必填 订单号
-	MchID       string `xml:"mch_id"`       //必填
-	MchName     string `xml:"mch_name"`     //必填//商户名称，会展示在红包领取页面上
-	QqAppID     string `xml:"qqappid"`      //必填
-	ReOpenID    string `xml:"re_openid"`    //必填
-	TotalAmount int    `xml:"total_amount"` //必填
-	TotalNum    int    `xml:"total_num"`    //必填
-	Wishing     string `xml:"wishing"`      //必填
-	ActName     string `xml:"act_name"`     //必填
-	IconID      int    `xml:"icon_id"`      //必填
-	BannerID    int    `xml:"banner_id,omitempty"`
-	NotifyUrl   string `xml:"notify_url,omitempty"`
-	NotSendMsg  int    `xml:"not_send_msg,omitempty"`
-	MinValue    int    `xml:"min_value"` //必填 1
-	MaxValue    int    `xml:"max_value"` //必填 100
+	Charset     int    `json:"charset" xml:"charset"`           //必填 1 utf8 , 2 gbk
+	NonceStr    string `json:"nonce_str" xml:"nonce_str"`       //必填
+	Sign        string `json:"sign" xml:"sign"`                 //必填
+	MchBillno   string `json:"mch_billno" xml:"mch_billno"`     //必填 订单号
+	MchID       string `json:"mch_id" xml:"mch_id"`             //必填
+	MchName     string `json:"mch_name" xml:"mch_name"`         //必填//商户名称，会展示在红包领取页面上
+	QqAppID     string `json:"qqappid" xml:"qqappid"`           //必填
+	ReOpenID    string `json:"re_openid" xml:"re_openid"`       //必填
+	TotalAmount int    `json:"total_amount" xml:"total_amount"` //必填
+	TotalNum    int    `json:"total_num" xml:"total_num"`       //必填
+	Wishing     string `json:"wishing" xml:"wishing"`           //必填
+	ActName     string `json:"act_name" xml:"act_name"`         //必填
+	IconID      int    `json:"icon_id" xml:"icon_id"`           //必填
+	BannerID    int    `json:"banner_id,omitempty" xml:"banner_id,omitempty"`
+	NotifyUrl   string `json:"notify_url,omitempty" xml:"notify_url,omitempty"`
+	NotSendMsg  int    `json:"not_send_msg,omitempty" xml:"not_send_msg,omitempty"`
+	MinValue    int    `json:"min_value" xml:"min_value"` //必填 1
+	MaxValue    int    `json:"max_value" xml:"max_value"` //必填 100
 }
 
 type RedResult struct {
-	ReturnCode string `xml:"return_code"`
-	ReturnMsg  string `xml:"return_msg"`
-	Retcode    string `xml:"retcode"`
-	Retmsg     string `xml:"retmsg"`
+	Retcode string `json:"retcode"`
+	Retmsg  string `json:"retmsg"`
+	Listid  string `json:"listid"`
 }
 
-func (pcf *Pay) SendRed(p *Params) error {
+func (pcf *Pay) SendRed(p *Params) (string, error) {
 	nonceStr := util.RandomStr(32)
 	params := &RedParams{
 		Charset:     1,
@@ -376,37 +386,46 @@ func (pcf *Pay) SendRed(p *Params) error {
 		IconID:      p.IconID,
 		BannerID:    p.BannerID,
 		MinValue:    1,
-		NotSendMsg:  1,
 		MaxValue:    p.TotalFee + 1,
 	}
-	sign, err := pcf.Sign(params, pcf.PayKey)
+	sign, err := pcf.SignByJson(params, pcf.PayKey)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return "", err
 	}
 	params.Sign = sign
 	client, err := util.NewTLSHttpClient([]byte(pcf.PayCertPEMBlock), []byte(pcf.PayKeyPEMBlock))
 	if err != nil {
-		return err
+		return "", err
 	}
-	rawRet, err := util.PostXML(sendRedUri, params, "RedParams", client)
+
+	j, _ := json.Marshal(params)
+	var paramsMap map[string]interface{}
+	err = json.Unmarshal(j, &paramsMap)
+	if err != nil {
+		return "", err
+	}
+	urlParams := url.Values{}
+	for k, v := range paramsMap {
+		urlParams.Add(k, fmt.Sprint(v))
+	}
+	link := sendRedUri + "?"
+	link = link + urlParams.Encode()
+	rawRet, err := util.HTTPGetV2(link, client)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return "", err
 	}
 	payRet := RedResult{}
-	err = xml.Unmarshal(rawRet, &payRet)
+	err = json.Unmarshal(rawRet, &payRet)
 	if err != nil {
-		fmt.Println("xmlUnmarshalError,res:" + string(rawRet))
-		return err
+		fmt.Println("jsonUnmarshalError,res:" + string(rawRet))
+		return "", err
 	}
-	if payRet.ReturnCode == "SUCCESS" {
-		if payRet.Retcode == "SUCCESS" {
-			return nil
-		}
-		return errors.New(payRet.Retmsg)
+	if payRet.Retcode == "0" {
+		return payRet.Listid, nil
 	}
-	return errors.New("[msg : xmlUnmarshalError] [rawReturn : " + string(rawRet) + "]")
+	return "", errors.New("[msg : jsonUnmarshalError] [rawReturn : " + string(rawRet) + "]")
 }
 
 type WxRefundParams struct {
