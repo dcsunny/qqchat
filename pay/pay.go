@@ -188,6 +188,7 @@ func (pcf *Pay) PrePayOrder(p *Params) (payOrder PreOrder, err error) {
 		NonceStr:       nonceStr,
 		Body:           p.Body,
 		OutTradeNo:     p.OutTradeNo,
+		FeeType:        "CNY",
 		TotalFee:       p.TotalFee,
 		SpbillCreateIp: p.CreateIP,
 		NotifyUrl:      pcf.PayNotifyURL,

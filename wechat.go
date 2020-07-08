@@ -54,10 +54,10 @@ func NewWechat(cfg *Config) *Wechat {
 
 func copyConfigToContext(cfg *Config, context *context.Context) {
 	if cfg.ApiBaseUrl == "" {
-		cfg.ApiBaseUrl = "https://api.weixin.qq.com"
+		cfg.ApiBaseUrl = "https://api.q.qq.com"
 	}
 	if cfg.QyApiBaseUrl == "" {
-		cfg.QyApiBaseUrl = "https://qyapi.weixin.qq.com"
+		cfg.QyApiBaseUrl = "https://api.q.qq.com"
 	}
 	context.AppID = cfg.AppID
 	context.AppSecret = cfg.AppSecret
