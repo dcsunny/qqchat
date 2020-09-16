@@ -26,11 +26,11 @@ func HTTPGet(uri string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	respBody, err := ioutil.ReadAll(response.Body)
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, respBody)
 	}
-	return ioutil.ReadAll(response.Body)
+	return respBody, err
 }
 
 func HTTPGetV2(uri string, client *http.Client) ([]byte, error) {
@@ -44,10 +44,11 @@ func HTTPGetV2(uri string, client *http.Client) ([]byte, error) {
 		return nil, err
 	}
 
+	respBody, err := ioutil.ReadAll(response.Body)
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, respBody)
 	}
-	return ioutil.ReadAll(response.Body)
+	return respBody, err
 }
 
 //PostJSON post json 数据请求
@@ -72,10 +73,11 @@ func PostJSON(uri string, obj interface{}) ([]byte, error) {
 		return nil, err
 	}
 
+	respBody, err := ioutil.ReadAll(response.Body)
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, respBody)
 	}
-	return ioutil.ReadAll(response.Body)
+	return respBody, err
 }
 
 // PostJSONWithRespContentType post json数据请求，且返回数据类型
@@ -100,10 +102,10 @@ func PostJSONWithRespContentType(uri string, obj interface{}) ([]byte, string, e
 		return nil, "", err
 	}
 
-	if response.StatusCode != http.StatusOK {
-		return nil, "", fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
-	}
 	responseData, err := ioutil.ReadAll(response.Body)
+	if response.StatusCode != http.StatusOK {
+		return nil, "", fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, responseData)
+	}
 	contentType := response.Header.Get("Content-Type")
 	return responseData, contentType, err
 }
@@ -142,20 +144,20 @@ func PostFileV2(fieldname, filename string, fileReader io.Reader, uri string) (r
 	contentType := bodyWriter.FormDataContentType()
 	bodyWriter.Close()
 
-	resp, e := http.Post(uri, contentType, bodyBuf)
+	response, e := http.Post(uri, contentType, bodyBuf)
 	defer func() {
-		if resp != nil {
-			resp.Body.Close()
+		if response != nil {
+			response.Body.Close()
 		}
 	}()
 	if e != nil {
 		err = e
 		return
 	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, resp.StatusCode, resp.Body)
+	respBody, err = ioutil.ReadAll(response.Body)
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, respBody)
 	}
-	respBody, err = ioutil.ReadAll(resp.Body)
 	return
 }
 
@@ -213,16 +215,16 @@ func PostMultipartForm(fields []MultipartFormField, uri string) (respBody []byte
 	contentType := bodyWriter.FormDataContentType()
 	bodyWriter.Close()
 
-	resp, e := http.Post(uri, contentType, bodyBuf)
+	response, e := http.Post(uri, contentType, bodyBuf)
 	if e != nil {
 		err = e
 		return
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, resp.StatusCode, resp.Body)
+	defer response.Body.Close()
+	respBody, err = ioutil.ReadAll(response.Body)
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, respBody)
 	}
-	respBody, err = ioutil.ReadAll(resp.Body)
 	return
 }
 
@@ -249,10 +251,11 @@ func PostXML(uri string, obj interface{}, xmlHead string, client *http.Client) (
 		return nil, err
 	}
 
+	respBody, err := ioutil.ReadAll(response.Body)
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, respBody)
 	}
-	return ioutil.ReadAll(response.Body)
+	return respBody, err
 }
 
 // NewHTTPSClient 获取默认https客户端
