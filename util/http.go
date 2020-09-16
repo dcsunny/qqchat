@@ -28,7 +28,7 @@ func HTTPGet(uri string) ([]byte, error) {
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http get error : uri=%v , statusCode=%v", uri, response.StatusCode)
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
 	}
 	return ioutil.ReadAll(response.Body)
 }
@@ -45,7 +45,7 @@ func HTTPGetV2(uri string, client *http.Client) ([]byte, error) {
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http get error : uri=%v , statusCode=%v", uri, response.StatusCode)
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
 	}
 	return ioutil.ReadAll(response.Body)
 }
@@ -73,7 +73,7 @@ func PostJSON(uri string, obj interface{}) ([]byte, error) {
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http get error : uri=%v , statusCode=%v", uri, response.StatusCode)
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
 	}
 	return ioutil.ReadAll(response.Body)
 }
@@ -101,7 +101,7 @@ func PostJSONWithRespContentType(uri string, obj interface{}) ([]byte, string, e
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, "", fmt.Errorf("http get error : uri=%v , statusCode=%v", uri, response.StatusCode)
+		return nil, "", fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
 	}
 	responseData, err := ioutil.ReadAll(response.Body)
 	contentType := response.Header.Get("Content-Type")
@@ -153,7 +153,7 @@ func PostFileV2(fieldname, filename string, fileReader io.Reader, uri string) (r
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, err
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, resp.StatusCode, resp.Body)
 	}
 	respBody, err = ioutil.ReadAll(resp.Body)
 	return
