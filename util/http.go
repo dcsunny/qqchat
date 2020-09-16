@@ -220,7 +220,7 @@ func PostMultipartForm(fields []MultipartFormField, uri string) (respBody []byte
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, err
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, resp.StatusCode, resp.Body)
 	}
 	respBody, err = ioutil.ReadAll(resp.Body)
 	return
@@ -250,7 +250,7 @@ func PostXML(uri string, obj interface{}, xmlHead string, client *http.Client) (
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v", uri, response.StatusCode)
+		return nil, fmt.Errorf("http code error : uri=%v , statusCode=%v,body:%s", uri, response.StatusCode, response.Body)
 	}
 	return ioutil.ReadAll(response.Body)
 }
