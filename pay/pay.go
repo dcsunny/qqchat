@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	payGateway  = "https://qpay.qq.com/cgi-bin/pay/qpay_unified_order.cgi"
-	mchTransUri = "https://api.qpay.qq.com/cgi-bin/epay/qpay_epay_b2c.cgi"
-	sendRedUri  = "https://api.qpay.qq.com/cgi-bin/hongbao/qpay_hb_mch_send.cgi"
+	payGateway   = "https://qpay.qq.com/cgi-bin/pay/qpay_unified_order.cgi"
+	wxPayGeteway = "https://api.q.qq.com/wxpay/unifiedorder"
+	mchTransUri  = "https://api.qpay.qq.com/cgi-bin/epay/qpay_epay_b2c.cgi"
+	sendRedUri   = "https://api.qpay.qq.com/cgi-bin/hongbao/qpay_hb_mch_send.cgi"
 )
 
 // Pay struct extends context
@@ -36,6 +37,7 @@ type Params struct {
 	ContractCode string
 	PromotionTag string
 	Attach       string
+	WxAppID      string
 	//以下红包使用
 	Wishing   string
 	SendName  string
@@ -68,6 +70,7 @@ type PreOrder struct {
 	CodeURL    string `xml:"code_url,omitempty"`
 	ErrCode    string `xml:"err_code,omitempty"`
 	ErrCodeDes string `xml:"err_code_des,omitempty"`
+	MwebUrl    string `xml:"mweb_url,omitempty"`
 }
 
 type AppPayConfig struct {
@@ -141,6 +144,7 @@ type NotifyResult struct {
 	ResultCode    string `xml:"result_code"`
 	ErrCode       string `xml:"err_code"`
 	ErrCodeDes    string `xml:"err_code_des"`
+	IsSubscribe   string `xml:"is_subscribe"`
 }
 
 type NotifyReturn struct {
@@ -203,6 +207,48 @@ func (pcf *Pay) PrePayOrder(p *Params) (payOrder PreOrder, err error) {
 	}
 	request.Sign = sign
 	rawRet, err := util.PostXML(payGateway, request, "payRequest", nil)
+	if err != nil {
+		return PreOrder{}, errors.New(err.Error())
+	}
+	err = xml.Unmarshal(rawRet, &payOrder)
+	if err != nil {
+		return payOrder, errors.New(err.Error())
+	}
+	if payOrder.ReturnCode == "SUCCESS" {
+		//pay success
+		if payOrder.ResultCode == "SUCCESS" {
+			return payOrder, nil
+		}
+		return payOrder, errors.New(payOrder.ErrCode + payOrder.ErrCodeDes)
+	} else {
+		return payOrder, errors.New("[msg : xmlUnmarshalError] [rawReturn : " + string(rawRet) + "] [sign : " + sign + "]")
+	}
+}
+
+//todo v2版本的微信支付
+func (pcf *Pay) WxPrePayOrder(p *Params) (payOrder PreOrder, err error) {
+	nonceStr := util.RandomStr(32)
+
+	request := payRequest{
+		AppID:          p.WxAppID,
+		MchID:          pcf.PayMchID,
+		NonceStr:       nonceStr,
+		Body:           p.Body,
+		OutTradeNo:     p.OutTradeNo,
+		TotalFee:       p.TotalFee,
+		SpbillCreateIp: p.CreateIP, //todo 必须是真实ip
+		NotifyUrl:      "https://api.q.qq.com/wxpay/notify",
+		TradeType:      "MWEB",
+	}
+	sign, err := pcf.Sign(&request, pcf.PayKey)
+	if err != nil {
+		fmt.Println(err)
+		return payOrder, err
+	}
+	request.Sign = sign
+	accessToken, _ := pcf.GetAccessToken()
+	link := wxPayGeteway + "?appid=" + pcf.AppID + "&access_token=" + accessToken
+	rawRet, err := util.PostXML(link, request, "payRequest", nil)
 	if err != nil {
 		return PreOrder{}, errors.New(err.Error())
 	}
