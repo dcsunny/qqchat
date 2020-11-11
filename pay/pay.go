@@ -108,7 +108,7 @@ type payRequest struct {
 	Body           string `xml:"body"`
 	Attach         string `xml:"attach,omitempty"`        //附加数据
 	OutTradeNo     string `xml:"out_trade_no"`            //商户订单号
-	FeeType        string `xml:"fee_type"`                //标价币种
+	FeeType        string `xml:"fee_type,omitempty"`      //标价币种
 	TotalFee       int    `xml:"total_fee"`               //标价金额
 	SpbillCreateIp string `xml:"spbill_create_ip"`        //终端IP
 	TimeStart      string `xml:"time_start,omitempty"`    //交易起始时间
@@ -119,7 +119,7 @@ type payRequest struct {
 	TradeType      string `xml:"trade_type"`              //交易类型
 	NotifyUrl      string `xml:"notify_url"`              //通知地址
 	DeviceInfo     string `xml:"device_info,omitempty"`
-	MiniAppParam   string `xml:"mini_app_param"`
+	MiniAppParam   string `xml:"mini_app_param,omitempty"`
 }
 
 type NotifyResult struct {
